@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resources — CloudProvision</title>
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <a href="/dashboard.html" class="sidebar-logo">
+      <div class="sidebar-logo-icon">CP</div>
+      <span class="sidebar-logo-text">CloudProvision</span>
+    </a>
+
+    <nav class="sidebar-nav" aria-label="Main navigation">
+      <div class="sidebar-section-label">Platform</div>
+
+      <a href="/dashboard.html" class="sidebar-link">
+        <span class="sidebar-link-icon">⊞</span>
+        Dashboard
+      </a>
+      <a href="/resources.html" class="sidebar-link active" aria-current="page">
+        <span class="sidebar-link-icon">◈</span>
+        Resources
+      </a>
+      <a href="/activity.html" class="sidebar-link">
+        <span class="sidebar-link-icon">◷</span>
+        Activity
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" data-user-avatar>?</div>
+        <div>
+          <div class="user-name" data-user-name>—</div>
+          <div class="user-email" data-user-email>—</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-full btn-sm" id="logout-btn">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- ── Main content ──────────────────────────────────────────────────────── -->
+  <main class="main-content">
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">Resources</h1>
+        <p class="page-subtitle">Your provisioned infrastructure</p>
+      </div>
+      <a href="/dashboard.html" class="btn btn-primary btn-sm">+ New Resource</a>
+    </header>
+
+    <div class="page-body">
+
+      <div id="resources-alert" class="alert mb-4" role="alert"></div>
+
+      <!-- Resources table — populated by Phase 7 JS -->
+      <div class="table-container" id="resources-container">
+        <div class="empty-state">
+          <div class="empty-state-icon">◈</div>
+          <div class="empty-state-title">No resources yet</div>
+          <div class="empty-state-text">
+            Go to the dashboard to provision your first EC2 instance, S3 bucket, or RDS database.
+          </div>
+          <a href="/dashboard.html" class="btn btn-primary btn-sm">Provision now</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/provision.js"></script>
+<script src="/js/dashboard.js"></script>
+</body>
+</html>

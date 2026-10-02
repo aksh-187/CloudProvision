@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — CloudProvision</title>
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <a href="/dashboard.html" class="sidebar-logo">
+      <div class="sidebar-logo-icon">CP</div>
+      <span class="sidebar-logo-text">CloudProvision</span>
+    </a>
+
+    <nav class="sidebar-nav" aria-label="Main navigation">
+      <div class="sidebar-section-label">Platform</div>
+
+      <a href="/dashboard.html" class="sidebar-link active" aria-current="page">
+        <span class="sidebar-link-icon">⊞</span>
+        Dashboard
+      </a>
+      <a href="/resources.html" class="sidebar-link">
+        <span class="sidebar-link-icon">◈</span>
+        Resources
+      </a>
+      <a href="/activity.html" class="sidebar-link">
+        <span class="sidebar-link-icon">◷</span>
+        Activity
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" data-user-avatar>?</div>
+        <div>
+          <div class="user-name" data-user-name>—</div>
+          <div class="user-email" data-user-email>—</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-full btn-sm" id="logout-btn">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- ── Main content ──────────────────────────────────────────────────────── -->
+  <main class="main-content">
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Overview of your infrastructure</p>
+      </div>
+    </header>
+
+    <div class="page-body">
+
+      <!-- Stats -->
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Resources</div>
+          <div class="stat-value" id="stat-total">—</div>
+          <div class="stat-sublabel">All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active</div>
+          <div class="stat-value" id="stat-active">—</div>
+          <div class="stat-sublabel">Currently running</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">In Progress</div>
+          <div class="stat-value" id="stat-inprogress">—</div>
+          <div class="stat-sublabel">Provisioning / Destroying</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Failed</div>
+          <div class="stat-value" id="stat-failed">—</div>
+          <div class="stat-sublabel">Requires attention</div>
+        </div>
+      </div>
+
+      <!-- New provision + recent activity side by side -->
+      <div class="two-col">
+
+        <!-- Provision panel -->
+        <section class="provision-panel">
+          <h2 class="provision-panel-title">Provision Infrastructure</h2>
+          <p class="text-sm text-muted mb-6">Select a resource type to configure and deploy.</p>
+
+          <div class="resource-types" id="resource-type-selector">
+            <div class="resource-type-card" data-type="ec2">
+              <div class="resource-type-icon">🖥️</div>
+              <div class="resource-type-name">EC2</div>
+              <div class="resource-type-desc">Virtual machine instance</div>
+            </div>
+            <div class="resource-type-card" data-type="s3">
+              <div class="resource-type-icon">🪣</div>
+              <div class="resource-type-name">S3</div>
+              <div class="resource-type-desc">Object storage bucket</div>
+            </div>
+            <div class="resource-type-card" data-type="rds">
+              <div class="resource-type-icon">🗄️</div>
+              <div class="resource-type-name">RDS</div>
+              <div class="resource-type-desc">Managed database</div>
+            </div>
+          </div>
+
+          <!-- Provision form — rendered by provision.js in Phase 7 -->
+          <div id="provision-form-container"></div>
+        </section>
+
+        <!-- Recent activity -->
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">Recent Activity</h2>
+            <a href="/activity.html" class="btn btn-ghost btn-sm">View all</a>
+          </div>
+          <div id="activity-feed">
+            <div class="empty-state">
+              <div class="empty-state-icon">◷</div>
+              <div class="empty-state-title">No activity yet</div>
+              <div class="empty-state-text">Provision your first resource to get started.</div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+    </div><!-- /page-body -->
+  </main>
+
+</div><!-- /app-shell -->
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/provision.js"></script>
+<script src="/js/dashboard.js"></script>
+</body>
+</html>

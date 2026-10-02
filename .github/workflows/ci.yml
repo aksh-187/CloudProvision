@@ -1,0 +1,55 @@
+# ─── CloudProvision — CI Workflow ─────────────────────────────────────────────
+#
+# Runs on every push and pull request.
+# Performs: dependency install, lint check, backend tests.
+#
+# Does NOT run terraform apply or terraform destroy.
+# Infrastructure creation/destruction requires intentional action with
+# appropriate credentials — see terraform.yml.
+
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  test:
+    name: Install, lint & test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # ── Audit ────────────────────────────────────────────────────────────────
+      - name: Security audit
+        run: npm audit --audit-level=high
+        # Fails the build on high/critical vulnerabilities.
+        # Moderate vulnerabilities are reported but do not fail CI.
+
+      # ── Tests ────────────────────────────────────────────────────────────────
+      - name: Run tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          # Use an in-memory/temp path for the test database
+          DATABASE_PATH: /tmp/cloudprovision-test.sqlite
+          # Test session secret — not a real secret
+          SESSION_SECRET: ci-test-session-secret-not-for-production
+          PORT: 3001

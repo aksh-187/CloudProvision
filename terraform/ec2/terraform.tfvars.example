@@ -1,0 +1,10 @@
+# ─── EC2 terraform.tfvars example ─────────────────────────────────────────────
+# The provisioning service writes a real terraform.tfvars (no .example suffix)
+# with values specific to each job. This file is for reference only.
+# Never commit terraform.tfvars — it is gitignored.
+
+aws_region    = "us-east-1"
+instance_type = "t3.micro"
+instance_name = "my-ec2-instance"
+job_id        = "job_abc123"
+user_id       = "user_xyz789"
