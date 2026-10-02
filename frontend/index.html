@@ -6,39 +6,26 @@
   <title>CloudProvision</title>
   <link rel="stylesheet" href="/css/main.css" />
   <style>
-    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    .redirecting { text-align: center; color: var(--color-text-muted); font-size: var(--text-sm); }
-    .spinner-lg {
-      width: 32px; height: 32px;
-      border: 3px solid var(--color-border);
-      border-top-color: var(--color-primary);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      margin: 0 auto var(--space-4);
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .redir { text-align:center; color:var(--color-text-muted); font-size:var(--text-sm); }
+    .spinner-lg { width:32px;height:32px;border:3px solid var(--color-border);border-top-color:var(--color-primary);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto var(--space-4); }
+    @keyframes spin { to { transform:rotate(360deg); } }
   </style>
 </head>
 <body>
-  <div class="redirecting">
+  <div class="redir">
     <div class="spinner-lg"></div>
     <p>Loading CloudProvision…</p>
   </div>
-  <script src="/js/api.js"></script>
   <script>
-    // Redirect: send authenticated users to dashboard, others to login
-    (async () => {
-      try {
-        const res = await fetch('/api/auth/me', { credentials: 'include' });
-        if (res.ok) {
-          window.location.href = '/dashboard.html';
-        } else {
-          window.location.href = '/login.html';
-        }
-      } catch {
-        window.location.href = '/login.html';
-      }
-    })();
+  (async () => {
+    try {
+      const res = await fetch('/api/auth/me', { credentials: 'include' });
+      window.location.href = res.ok ? '/dashboard.html' : '/login.html';
+    } catch {
+      window.location.href = '/login.html';
+    }
+  })();
   </script>
 </body>
 </html>

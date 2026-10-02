@@ -1,14 +1,16 @@
 # ─── RDS terraform.tfvars example ─────────────────────────────────────────────
-# NEVER commit a real terraform.tfvars for RDS — it contains credentials.
-# The provisioning service injects db_username and db_password at runtime
-# from securely stored values, not from user input.
+# NEVER commit a real terraform.tfvars — it contains credentials.
+# The provisioning service generates and injects credentials at runtime.
 
-aws_region        = "us-east-1"
-db_identifier     = "cloudprovision-rds-job-abc123"
-db_engine         = "mysql"
-db_instance_class = "db.t3.micro"
-db_name           = "appdb"
-db_username       = "cpuser"
-db_password       = "GENERATED_AT_RUNTIME_NEVER_HARDCODE"
-job_id            = "job_abc123"
-user_id           = "user_xyz789"
+aws_region           = "us-east-1"
+db_identifier        = "cloudprovision-rds-job-abc123"
+db_engine            = "mysql"
+db_engine_version    = "8.0"
+db_instance_class    = "db.t3.micro"
+db_allocated_storage = 20
+db_name              = "appdb"
+db_username          = "cpuser"
+db_password          = "GENERATED_AT_RUNTIME_NEVER_HARDCODE"
+multi_az             = false
+job_id               = "job_abc123"
+user_id              = "user_xyz789"

@@ -10,34 +10,27 @@
 <body>
 <div class="app-shell">
 
-  <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
   <aside class="sidebar">
     <a href="/dashboard.html" class="sidebar-logo">
       <div class="sidebar-logo-icon">CP</div>
       <span class="sidebar-logo-text">CloudProvision</span>
     </a>
-
     <nav class="sidebar-nav" aria-label="Main navigation">
       <div class="sidebar-section-label">Platform</div>
-
       <a href="/dashboard.html" class="sidebar-link">
-        <span class="sidebar-link-icon">⊞</span>
-        Dashboard
+        <span class="sidebar-link-icon">⊞</span> Dashboard
       </a>
       <a href="/resources.html" class="sidebar-link active" aria-current="page">
-        <span class="sidebar-link-icon">◈</span>
-        Resources
+        <span class="sidebar-link-icon">◈</span> Resources
       </a>
       <a href="/activity.html" class="sidebar-link">
-        <span class="sidebar-link-icon">◷</span>
-        Activity
+        <span class="sidebar-link-icon">◷</span> Activity
       </a>
     </nav>
-
     <div class="sidebar-footer">
       <div class="user-info">
         <div class="user-avatar" data-user-avatar>?</div>
-        <div>
+        <div style="min-width:0">
           <div class="user-name" data-user-name>—</div>
           <div class="user-email" data-user-email>—</div>
         </div>
@@ -46,7 +39,6 @@
     </div>
   </aside>
 
-  <!-- ── Main content ──────────────────────────────────────────────────────── -->
   <main class="main-content">
     <header class="page-header">
       <div>
@@ -57,29 +49,242 @@
     </header>
 
     <div class="page-body">
-
-      <div id="resources-alert" class="alert mb-4" role="alert"></div>
-
-      <!-- Resources table — populated by Phase 7 JS -->
-      <div class="table-container" id="resources-container">
+      <div id="page-alert" class="alert mb-4"></div>
+      <div id="resources-container">
         <div class="empty-state">
-          <div class="empty-state-icon">◈</div>
-          <div class="empty-state-title">No resources yet</div>
-          <div class="empty-state-text">
-            Go to the dashboard to provision your first EC2 instance, S3 bucket, or RDS database.
-          </div>
-          <a href="/dashboard.html" class="btn btn-primary btn-sm">Provision now</a>
+          <div class="empty-state-icon"><span class="spinner"></span></div>
+          <div class="empty-state-title">Loading…</div>
         </div>
       </div>
-
     </div>
   </main>
 
 </div>
 
+<!-- Destroy confirm dialog (hidden by default) -->
+<div id="confirm-dialog" style="display:none" class="dialog-overlay" role="dialog" aria-modal="true">
+  <div class="dialog-box">
+    <div class="dialog-title">⚠️ Confirm Destruction</div>
+    <div class="dialog-body" id="dialog-body">
+      This will run <code>terraform destroy</code> and permanently remove the AWS resource.
+      This action cannot be undone.
+    </div>
+    <div class="dialog-actions">
+      <button class="btn btn-secondary" id="dialog-cancel">Cancel</button>
+      <button class="btn btn-danger"    id="dialog-confirm">Destroy</button>
+    </div>
+  </div>
+</div>
+
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>
 <script src="/js/provision.js"></script>
-<script src="/js/dashboard.js"></script>
+<script>
+'use strict';
+
+const pagePollers = {};
+let pendingDestroyJobId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  let user;
+  try { user = await requireAuth(); } catch { return; }
+  populateSidebarUser(user);
+  wireLogoutButton();
+  await loadResources();
+});
+
+async function loadResources() {
+  const container = document.getElementById('resources-container');
+  try {
+    const data = await api.get('/resources');
+    if (!data) return;
+    renderResources(data.resources || []);
+  } catch (err) {
+    container.innerHTML = `<div class="alert alert-error visible">${escHtml(err.message)}</div>`;
+  }
+}
+
+function renderResources(resources) {
+  const container = document.getElementById('resources-container');
+
+  if (resources.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">◈</div>
+        <div class="empty-state-title">No resources yet</div>
+        <div class="empty-state-text">Provision your first EC2 instance, S3 bucket, or RDS database from the dashboard.</div>
+        <a href="/dashboard.html" class="btn btn-primary btn-sm mt-4">Provision now</a>
+      </div>`;
+    return;
+  }
+
+  // Group active vs destroyed
+  const active    = resources.filter(r => r.status !== 'DESTROYED');
+  const destroyed = resources.filter(r => r.status === 'DESTROYED');
+
+  let html = '';
+
+  if (active.length > 0) {
+    html += `
+      <div class="table-container mb-6">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>AWS Resource ID</th>
+              <th>Status</th>
+              <th>Region</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="active-tbody">
+            ${active.map(r => renderResourceRow(r)).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  if (destroyed.length > 0) {
+    html += `
+      <div class="card-header mt-4 mb-2">
+        <h3 class="card-title text-muted">Destroyed Resources</h3>
+      </div>
+      <div class="table-container" style="opacity:0.6">
+        <table class="table">
+          <thead>
+            <tr><th>Type</th><th>AWS Resource ID</th><th>Status</th><th>Destroyed</th></tr>
+          </thead>
+          <tbody>
+            ${destroyed.map(r => `
+              <tr>
+                <td>${resourceTypeIcon(r.resourceType)} ${resourceTypeLabel(r.resourceType)}</td>
+                <td class="table-mono">${escHtml(r.awsResourceId || '—')}</td>
+                <td>${renderBadge(r.status)}</td>
+                <td class="text-muted text-sm">${timeAgo(r.destroyedAt)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  container.innerHTML = html;
+
+  // Wire destroy buttons + status cards
+  active.forEach(r => {
+    wireResourceRow(r);
+    // Poll in-progress resources
+    if (['PENDING','PROVISIONING','DESTROYING'].includes(r.jobStatus)) {
+      startPolling(r.jobId, (jobData) => {
+        refreshResourceRow(jobData);
+        if (['READY','FAILED','DESTROYED'].includes(jobData.status)) {
+          stopPolling(r.jobId);
+          loadResources();
+        }
+      });
+    }
+  });
+}
+
+function renderResourceRow(r) {
+  const outputs = r.outputs || {};
+  const region  = outputs.region || r.config?.region || '—';
+  const canDestroy = r.status === 'READY';
+  const destroying = r.jobStatus === 'DESTROYING';
+
+  return `
+    <tr id="row-${r.jobId}">
+      <td>${resourceTypeIcon(r.resourceType)} ${resourceTypeLabel(r.resourceType)}</td>
+      <td class="table-mono">${escHtml(r.awsResourceId || '—')}</td>
+      <td>${renderBadge(r.status)}${r.status==='FAILED' ? `<div class="text-xs text-danger mt-1" title="${escHtml(r.errorMessage||'')}">See details</div>` : ''}</td>
+      <td class="text-muted text-sm">${escHtml(region)}</td>
+      <td class="text-muted text-sm">${timeAgo(r.createdAt)}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="showDetail('${r.jobId}')">Details</button>
+        ${canDestroy ? `<button class="btn btn-danger btn-sm ml-2" onclick="confirmDestroy('${r.jobId}','${resourceTypeLabel(r.resourceType)}')" id="destroy-btn-${r.jobId}">Destroy</button>` : ''}
+        ${destroying ? `<span class="spinner ml-2"></span>` : ''}
+      </td>
+    </tr>
+    <tr id="detail-${r.jobId}" style="display:none">
+      <td colspan="6">
+        <div class="resource-detail-grid" style="padding:var(--space-4);background:var(--color-bg);border-radius:var(--radius);">
+          ${renderOutputDetail(r)}
+        </div>
+        ${r.errorMessage ? `<div class="alert alert-error visible mt-2 mb-2" style="margin:var(--space-2) var(--space-4);">${escHtml(r.errorMessage)}</div>` : ''}
+      </td>
+    </tr>`;
+}
+
+function renderOutputDetail(r) {
+  const outputs = r.outputs || {};
+  const entries = Object.entries(outputs).filter(([k]) => !['job_id','user_id'].includes(k));
+  if (entries.length === 0) {
+    return r.errorMessage
+      ? `<div class="text-muted text-sm">No outputs available.</div>`
+      : `<div class="text-muted text-sm">Outputs will appear when provisioning completes.</div>`;
+  }
+  return entries.map(([k, v]) => `
+    <div>
+      <div class="detail-label">${k.replace(/_/g,' ')}</div>
+      <div class="detail-value">${escHtml(String(v || '—'))}</div>
+    </div>`).join('');
+}
+
+function wireResourceRow(r) {
+  // Detail toggle is handled inline via onclick — no additional wiring needed
+}
+
+function refreshResourceRow(jobData) {
+  // Reload entire list for simplicity
+}
+
+window.showDetail = function(jobId) {
+  const row = document.getElementById(`detail-${jobId}`);
+  if (row) {
+    row.style.display = row.style.display === 'none' ? '' : 'none';
+  }
+};
+
+window.confirmDestroy = function(jobId, label) {
+  pendingDestroyJobId = jobId;
+  document.getElementById('dialog-body').textContent =
+    `This will run terraform destroy on your ${label} resource and permanently remove it from AWS. This cannot be undone.`;
+  document.getElementById('confirm-dialog').style.display = 'flex';
+};
+
+document.getElementById('dialog-cancel').addEventListener('click', () => {
+  document.getElementById('confirm-dialog').style.display = 'none';
+  pendingDestroyJobId = null;
+});
+
+document.getElementById('dialog-confirm').addEventListener('click', async () => {
+  const jobId = pendingDestroyJobId;
+  document.getElementById('confirm-dialog').style.display = 'none';
+  pendingDestroyJobId = null;
+  if (!jobId) return;
+
+  const btn = document.getElementById(`destroy-btn-${jobId}`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Destroying…'; }
+
+  try {
+    await api.post(`/destroy/${jobId}`);
+    // Poll until DESTROYED or FAILED
+    startPolling(jobId, (jobData) => {
+      if (jobData.status === 'DESTROYED' || jobData.status === 'FAILED') {
+        stopPolling(jobId);
+        loadResources();
+      }
+    });
+  } catch (err) {
+    const alert = document.getElementById('page-alert');
+    if (alert) { alert.textContent = err.message; alert.className = 'alert alert-error visible mb-4'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Destroy'; }
+  }
+});
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
 </body>
 </html>

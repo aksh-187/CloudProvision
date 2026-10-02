@@ -1,0 +1,81 @@
+# ─── CloudProvision — Terraform Validation Workflow ───────────────────────────
+#
+# Runs on PRs that touch Terraform files.
+# Performs: fmt check, init (no backend), validate.
+#
+# ⛔  Does NOT run terraform apply or terraform destroy.
+#     Infrastructure changes require intentional action through the
+#     CloudProvision application with authenticated user approval.
+
+name: Terraform Validation
+
+on:
+  push:
+    paths:
+      - "terraform/**"
+  pull_request:
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform.yml"
+
+jobs:
+  validate:
+    name: Terraform fmt / init / validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.5"
+
+      - name: terraform fmt — ec2
+        run: terraform fmt -check -recursive -no-color
+        working-directory: terraform/ec2
+
+      - name: terraform fmt — s3
+        run: terraform fmt -check -recursive -no-color
+        working-directory: terraform/s3
+
+      - name: terraform fmt — rds
+        run: terraform fmt -check -recursive -no-color
+        working-directory: terraform/rds
+
+      - name: terraform fmt — combined
+        run: terraform fmt -check -recursive -no-color
+        working-directory: terraform/combined
+
+      - name: terraform init — ec2
+        run: terraform init -backend=false -no-color -input=false
+        working-directory: terraform/ec2
+
+      - name: terraform init — s3
+        run: terraform init -backend=false -no-color -input=false
+        working-directory: terraform/s3
+
+      - name: terraform init — rds
+        run: terraform init -backend=false -no-color -input=false
+        working-directory: terraform/rds
+
+      - name: terraform init — combined
+        run: terraform init -backend=false -no-color -input=false
+        working-directory: terraform/combined
+
+      - name: terraform validate — ec2
+        run: terraform validate -no-color
+        working-directory: terraform/ec2
+
+      - name: terraform validate — s3
+        run: terraform validate -no-color
+        working-directory: terraform/s3
+
+      - name: terraform validate — rds
+        run: terraform validate -no-color
+        working-directory: terraform/rds
+
+      - name: terraform validate — combined
+        run: terraform validate -no-color
+        working-directory: terraform/combined

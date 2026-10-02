@@ -10,34 +10,27 @@
 <body>
 <div class="app-shell">
 
-  <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
   <aside class="sidebar">
     <a href="/dashboard.html" class="sidebar-logo">
       <div class="sidebar-logo-icon">CP</div>
       <span class="sidebar-logo-text">CloudProvision</span>
     </a>
-
     <nav class="sidebar-nav" aria-label="Main navigation">
       <div class="sidebar-section-label">Platform</div>
-
       <a href="/dashboard.html" class="sidebar-link">
-        <span class="sidebar-link-icon">⊞</span>
-        Dashboard
+        <span class="sidebar-link-icon">⊞</span> Dashboard
       </a>
       <a href="/resources.html" class="sidebar-link">
-        <span class="sidebar-link-icon">◈</span>
-        Resources
+        <span class="sidebar-link-icon">◈</span> Resources
       </a>
       <a href="/activity.html" class="sidebar-link active" aria-current="page">
-        <span class="sidebar-link-icon">◷</span>
-        Activity
+        <span class="sidebar-link-icon">◷</span> Activity
       </a>
     </nav>
-
     <div class="sidebar-footer">
       <div class="user-info">
         <div class="user-avatar" data-user-avatar>?</div>
-        <div>
+        <div style="min-width:0">
           <div class="user-name" data-user-name>—</div>
           <div class="user-email" data-user-email>—</div>
         </div>
@@ -46,7 +39,6 @@
     </div>
   </aside>
 
-  <!-- ── Main content ──────────────────────────────────────────────────────── -->
   <main class="main-content">
     <header class="page-header">
       <div>
@@ -56,18 +48,12 @@
     </header>
 
     <div class="page-body">
-
-      <!-- Activity feed — populated by Phase 7/11 JS -->
-      <div class="card" id="activity-container">
+      <div id="activity-container" class="card">
         <div class="empty-state">
-          <div class="empty-state-icon">◷</div>
-          <div class="empty-state-title">No activity yet</div>
-          <div class="empty-state-text">
-            Your provisioning history will appear here after you create resources.
-          </div>
+          <div class="empty-state-icon"><span class="spinner"></span></div>
+          <div class="empty-state-title">Loading…</div>
         </div>
       </div>
-
     </div>
   </main>
 
@@ -75,6 +61,64 @@
 
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>
-<script src="/js/dashboard.js"></script>
+<script>
+'use strict';
+
+document.addEventListener('DOMContentLoaded', async () => {
+  let user;
+  try { user = await requireAuth(); } catch { return; }
+  populateSidebarUser(user);
+  wireLogoutButton();
+  await loadActivity();
+});
+
+async function loadActivity() {
+  const container = document.getElementById('activity-container');
+  try {
+    const data = await api.get('/activity?limit=100');
+    if (!data) return;
+    renderActivity(data.activity || [], container);
+  } catch (err) {
+    container.innerHTML = `<div class="alert alert-error visible">${escHtml(err.message)}</div>`;
+  }
+}
+
+function renderActivity(items, container) {
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">◷</div>
+        <div class="empty-state-title">No activity yet</div>
+        <div class="empty-state-text">Your provisioning history will appear here.</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="card-header mb-4">
+      <h2 class="card-title">Event Log</h2>
+      <span class="text-muted text-sm">${items.length} event${items.length !== 1 ? 's' : ''}</span>
+    </div>
+    <div class="activity-list">
+      ${items.map(a => `
+        <div class="activity-item">
+          <div class="activity-dot ${actionDotClass(a.action)}"></div>
+          <div class="activity-content">
+            <div class="activity-action">
+              ${escHtml(actionLabel(a.action))}
+              ${a.resourceType ? `<span class="badge badge-pending ml-2" style="font-size:0.65rem;">${resourceTypeLabel(a.resourceType)}</span>` : ''}
+            </div>
+            ${a.jobId ? `<div class="activity-detail text-mono">Job: ${a.jobId.slice(0,8)}…</div>` : ''}
+            <div class="activity-detail">${formatDate(a.createdAt)}</div>
+          </div>
+          <div class="activity-time">${timeAgo(a.createdAt)}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
 </body>
 </html>

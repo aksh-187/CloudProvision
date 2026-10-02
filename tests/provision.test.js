@@ -177,7 +177,7 @@ describe('POST /api/provision — input validation', () => {
   });
 
   test('returns 400 for unsupported resourceType', async () => {
-    const res = await agent.post('/api/provision').send({ resourceType: 's3', config: {} });
+    const res = await agent.post('/api/provision').send({ resourceType: 'cloudformation', config: {} });
     expect(res.status).toBe(400);
   });
 
@@ -617,7 +617,7 @@ describe('buildTfvars()', () => {
   });
 
   test('unsupported resource type throws', () => {
-    expect(() => buildTfvars('rds', {}, 'j1', 'u1')).toThrow(/unsupported resource type/i);
+    expect(() => buildTfvars('cloudformation', {}, 'j1', 'u1')).toThrow(/unsupported resource type/i);
   });
 });
 

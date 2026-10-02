@@ -159,7 +159,7 @@ function setupWorkDir(jobId, resourceType) {
  * @returns {{ jobId: string }}
  */
 function createJob({ userId, resourceType, config }) {
-  const SUPPORTED = ['ec2'];
+  const SUPPORTED = ['ec2', 's3', 'rds'];
   if (!SUPPORTED.includes(resourceType)) {
     throw new Error(`Unsupported resource type: ${resourceType}`);
   }
@@ -446,6 +446,45 @@ function buildTfvars(resourceType, config, jobId, userId) {
         job_id:        jobId,
         user_id:       userId,
       };
+
+    case 's3': {
+      // Generate a globally-unique bucket name from userId + timestamp + random
+      const userShort = userId.replace(/-/g, '').slice(0, 8).toLowerCase();
+      const ts        = Date.now();
+      const rand      = Math.random().toString(36).slice(2, 6);
+      const bucketName = config.bucketName
+        ? config.bucketName.toLowerCase().replace(/[^a-z0-9-]/g, '-').slice(0, 36)
+        : `cp-${userShort}-${ts}-${rand}`;
+      return {
+        aws_region:         config.region            || 'us-east-1',
+        bucket_name:        bucketName,
+        versioning_enabled: String(config.versioningEnabled === true ? 'true' : 'false'),
+        job_id:             jobId,
+        user_id:            userId,
+      };
+    }
+
+    case 'rds': {
+      // Sanitize identifier: lowercase, hyphens only, max 63 chars
+      const identifier = `cp-rds-${jobId.slice(0, 8).toLowerCase()}`;
+      // Generate a random password — never user-supplied
+      const password = require('crypto').randomBytes(16).toString('hex');
+      return {
+        aws_region:           config.region          || 'us-east-1',
+        db_identifier:        identifier,
+        db_engine:            config.dbEngine         || 'mysql',
+        db_engine_version:    config.dbEngineVersion  || '',
+        db_instance_class:    config.dbInstanceClass  || 'db.t3.micro',
+        db_allocated_storage: String(config.dbStorage || 20),
+        db_name:              config.dbName           || 'appdb',
+        db_username:          config.dbUsername       || 'cpuser',
+        db_password:          password,
+        multi_az:             'false',
+        job_id:               jobId,
+        user_id:              userId,
+      };
+    }
+
     default:
       throw new Error(`buildTfvars: unsupported resource type ${resourceType}`);
   }

@@ -1,6 +1,8 @@
 # ─── S3 terraform.tfvars example ──────────────────────────────────────────────
+# Provisioning service generates bucket_name — never hardcode.
 
-aws_region  = "us-east-1"
-bucket_name = "cloudprovision-user123-1700000000000-a1b2c3"
-job_id      = "job_abc123"
-user_id     = "user_xyz789"
+aws_region         = "us-east-1"
+bucket_name        = "cloudprovision-abc123-1700000000000-x7y8"
+versioning_enabled = false
+job_id             = "job_abc123"
+user_id            = "user_xyz789"

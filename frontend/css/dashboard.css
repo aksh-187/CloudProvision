@@ -391,3 +391,46 @@
   .resource-types { grid-template-columns: 1fr; }
   .page-header { padding: var(--space-4); }
 }
+
+/* ── Provision form ───────────────────────────────────────────────────────────── */
+.provision-form { margin-top: var(--space-4); }
+.provision-form .form-group { margin-bottom: var(--space-4); }
+
+/* ── Utility: ml-2 ────────────────────────────────────────────────────────────── */
+.ml-2 { margin-left: var(--space-2); }
+
+/* ── Active job status card on dashboard ─────────────────────────────────────── */
+#active-job-status { margin-top: var(--space-4); }
+
+/* ── Output table in status card ─────────────────────────────────────────────── */
+.card .table td:first-child { width: 45%; color: var(--color-text-muted); }
+.card .table td:last-child  { font-family: var(--font-mono); font-size: var(--text-xs); word-break: break-all; }
+
+/* ── Resource detail rows ─────────────────────────────────────────────────────── */
+.resource-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3) var(--space-6);
+  margin-top: var(--space-4);
+}
+.detail-label { font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+.detail-value { font-size: var(--text-sm); font-family: var(--font-mono); color: var(--color-text); word-break: break-all; }
+
+/* ── Confirm dialog overlay ───────────────────────────────────────────────────── */
+.dialog-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.dialog-box {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); padding: var(--space-8); max-width: 420px; width: 90%;
+  box-shadow: var(--shadow-lg);
+}
+.dialog-title { font-size: var(--text-lg); font-weight: var(--font-semibold); margin-bottom: var(--space-3); }
+.dialog-body  { font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: var(--space-6); }
+.dialog-actions { display: flex; gap: var(--space-3); justify-content: flex-end; }
+
+@media (max-width: 640px) {
+  .resource-detail-grid { grid-template-columns: 1fr; }
+}

@@ -10,34 +10,27 @@
 <body>
 <div class="app-shell">
 
-  <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
   <aside class="sidebar">
     <a href="/dashboard.html" class="sidebar-logo">
       <div class="sidebar-logo-icon">CP</div>
       <span class="sidebar-logo-text">CloudProvision</span>
     </a>
-
     <nav class="sidebar-nav" aria-label="Main navigation">
       <div class="sidebar-section-label">Platform</div>
-
       <a href="/dashboard.html" class="sidebar-link active" aria-current="page">
-        <span class="sidebar-link-icon">⊞</span>
-        Dashboard
+        <span class="sidebar-link-icon">⊞</span> Dashboard
       </a>
       <a href="/resources.html" class="sidebar-link">
-        <span class="sidebar-link-icon">◈</span>
-        Resources
+        <span class="sidebar-link-icon">◈</span> Resources
       </a>
       <a href="/activity.html" class="sidebar-link">
-        <span class="sidebar-link-icon">◷</span>
-        Activity
+        <span class="sidebar-link-icon">◷</span> Activity
       </a>
     </nav>
-
     <div class="sidebar-footer">
       <div class="user-info">
         <div class="user-avatar" data-user-avatar>?</div>
-        <div>
+        <div style="min-width:0">
           <div class="user-name" data-user-name>—</div>
           <div class="user-email" data-user-email>—</div>
         </div>
@@ -46,19 +39,19 @@
     </div>
   </aside>
 
-  <!-- ── Main content ──────────────────────────────────────────────────────── -->
   <main class="main-content">
     <header class="page-header">
       <div>
         <h1 class="page-title">Dashboard</h1>
         <p class="page-subtitle">Overview of your infrastructure</p>
       </div>
+      <a href="/resources.html" class="btn btn-secondary btn-sm">View all resources</a>
     </header>
 
     <div class="page-body">
 
       <!-- Stats -->
-      <div class="stats-grid" id="stats-grid">
+      <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-label">Total Resources</div>
           <div class="stat-value" id="stat-total">—</div>
@@ -81,24 +74,23 @@
         </div>
       </div>
 
-      <!-- New provision + recent activity side by side -->
       <div class="two-col">
 
         <!-- Provision panel -->
         <section class="provision-panel">
           <h2 class="provision-panel-title">Provision Infrastructure</h2>
-          <p class="text-sm text-muted mb-6">Select a resource type to configure and deploy.</p>
+          <p class="text-sm text-muted mb-6">Select a resource type, configure, and deploy.</p>
 
           <div class="resource-types" id="resource-type-selector">
             <div class="resource-type-card" data-type="ec2">
               <div class="resource-type-icon">🖥️</div>
               <div class="resource-type-name">EC2</div>
-              <div class="resource-type-desc">Virtual machine instance</div>
+              <div class="resource-type-desc">Virtual machine</div>
             </div>
             <div class="resource-type-card" data-type="s3">
               <div class="resource-type-icon">🪣</div>
               <div class="resource-type-name">S3</div>
-              <div class="resource-type-desc">Object storage bucket</div>
+              <div class="resource-type-desc">Object storage</div>
             </div>
             <div class="resource-type-card" data-type="rds">
               <div class="resource-type-icon">🗄️</div>
@@ -107,8 +99,8 @@
             </div>
           </div>
 
-          <!-- Provision form — rendered by provision.js in Phase 7 -->
           <div id="provision-form-container"></div>
+          <div id="active-job-status"></div>
         </section>
 
         <!-- Recent activity -->
@@ -127,11 +119,10 @@
         </section>
 
       </div>
-
-    </div><!-- /page-body -->
+    </div>
   </main>
 
-</div><!-- /app-shell -->
+</div>
 
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>

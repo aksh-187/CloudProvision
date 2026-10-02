@@ -23,6 +23,8 @@ const {
 const {
   ALLOWED_REGIONS,
   ALLOWED_EC2_INSTANCE_TYPES,
+  ALLOWED_RDS_INSTANCE_CLASSES,
+  ALLOWED_RDS_ENGINES,
 }                                = require('../utils/sanitize');
 
 const router = express.Router();
@@ -32,9 +34,9 @@ const router = express.Router();
 const provisionValidators = [
   body('resourceType')
     .notEmpty().withMessage('resourceType is required.')
-    .isIn(['ec2']).withMessage("resourceType must be 'ec2' (s3 and rds coming in later milestones)."),
+    .isIn(['ec2', 's3', 'rds']).withMessage("resourceType must be 'ec2', 's3', or 'rds'."),
 
-  // EC2-specific config fields (present when resourceType === 'ec2')
+  // ── EC2 fields ──
   body('config.region')
     .optional()
     .isIn(ALLOWED_REGIONS)
@@ -49,6 +51,37 @@ const provisionValidators = [
     .optional()
     .isLength({ max: 64 }).withMessage('config.instanceName must be 64 characters or fewer.')
     .matches(/^[a-zA-Z0-9_\- ]+$/).withMessage('config.instanceName may only contain letters, numbers, hyphens, underscores, and spaces.'),
+
+  // ── S3 fields ──
+  body('config.bucketName')
+    .optional()
+    .isLength({ min: 3, max: 36 }).withMessage('config.bucketName must be 3–36 characters.')
+    .matches(/^[a-z0-9][a-z0-9-]*[a-z0-9]$/).withMessage('config.bucketName must be lowercase letters, numbers, and hyphens only.'),
+
+  // ── RDS fields ──
+  body('config.dbEngine')
+    .optional()
+    .isIn(ALLOWED_RDS_ENGINES)
+    .withMessage(`config.dbEngine must be one of: ${ALLOWED_RDS_ENGINES.join(', ')}`),
+
+  body('config.dbInstanceClass')
+    .optional()
+    .isIn(ALLOWED_RDS_INSTANCE_CLASSES)
+    .withMessage(`config.dbInstanceClass must be one of: ${ALLOWED_RDS_INSTANCE_CLASSES.join(', ')}`),
+
+  body('config.dbName')
+    .optional()
+    .isLength({ max: 64 }).withMessage('config.dbName must be 64 characters or fewer.')
+    .matches(/^[a-zA-Z][a-zA-Z0-9_]*$/).withMessage('config.dbName must start with a letter and contain only letters, numbers, underscores.'),
+
+  body('config.dbUsername')
+    .optional()
+    .isLength({ min: 1, max: 16 }).withMessage('config.dbUsername must be 1–16 characters.')
+    .matches(/^[a-zA-Z][a-zA-Z0-9_]*$/).withMessage('config.dbUsername must start with a letter.'),
+
+  body('config.dbStorage')
+    .optional()
+    .isInt({ min: 20, max: 100 }).withMessage('config.dbStorage must be between 20 and 100 GB.'),
 ];
 
 const jobIdValidator = [
