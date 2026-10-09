@@ -53,3 +53,16 @@ logs/
 # ─── Test coverage ───────────────────────────────────────────────────────────
 coverage/
 .nyc_output/
+.env
+.env.*
+!.env.example
+node_modules/
+terraform_workspaces/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.pem
+*.key
+*.sqlite-shm
+*.sqlite-wal
+backend/database/*.sqlite

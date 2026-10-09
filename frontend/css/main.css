@@ -477,3 +477,35 @@ code, pre {
   .auth-card { padding: var(--space-8) var(--space-6); }
   .container { padding: 0 var(--space-4); }
 }
+
+/* ── Temporary Light Theme for Project Screenshots ── */
+:root {
+color-scheme: light;
+
+--color-bg:           #f5f7fb;
+--color-surface:      #ffffff;
+--color-surface-2:    #eef2f7;
+--color-border:       #d5dce7;
+--color-border-light: #e5eaf1;
+
+--color-text:         #172033;
+--color-text-muted:   #536176;
+--color-text-subtle:  #778399;
+
+--color-primary:      #2f81f7;
+--color-primary-hover:#1f6fe5;
+--color-primary-dim:  #e5efff;
+
+--color-success:      #16803d;
+--color-success-dim:  #e4f6e9;
+--color-warning:      #946200;
+--color-warning-dim:  #fff4d6;
+--color-danger:       #c62828;
+--color-danger-dim:   #fdeaea;
+--color-info:         #1769aa;
+--color-info-dim:     #e5f2ff;
+
+--shadow-sm: 0 1px 3px rgba(20, 35, 60, 0.08);
+--shadow:    0 4px 12px rgba(20, 35, 60, 0.10);
+--shadow-lg: 0 8px 24px rgba(20, 35, 60, 0.12);
+}
